@@ -1,0 +1,93 @@
+!<localip>   -   local ip address for sourcing crypto
+!<peer1ip>   -   public ip address of peer 1
+!<peer2ip>   -   public ip address of peer 2
+!<pip>       -   public ip of this device
+!<tunnelip>  -   ip address of tunnel interface
+!<loopbackIP>      -   loopback ip address for test
+!<routingnetwork>    - network being routed (/16), no subnet mask
+!<loopbacknetwork>   - network address of loopback
+!<trafficnexthop>    - next hop for production traffic
+!<trafficinterface>  - interface production traffic uses
+!<internetnexthop>   - next hop for internet 
+!<internetinterface> - interface used for internet
+
+no crypto ikev2 policy default
+no crypto ikev2 proposal default
+no crypto ipsec transform-set default
+no crypto ipsec profile default
+
+crypto logging ikev2
+crypto ikev2 proposal IKE-PROP
+ encryption aes-cbc-128
+ integrity sha256
+ group 14
+
+crypto ikev2 policy IKE-POL
+ match fvrf any
+ match address local <localip>
+ proposal IKE-PROP
+
+crypto ikev2 keyring IKE-KEY
+ peer <peer1ip>
+  address <peer1ip>
+  pre-shared-key qx23-9!%qdYR32Ybvaar6HRgwqrq$t
+!
+ peer <peer2ip>
+  address <peer2ip>
+  pre-shared-key qx23-9!%qdYR32Ybvaar6HRgwqrq$t
+ 
+
+crypto ikev2 profile IKE-PROF
+ match identity remote address <peer1ip> 255.255.255.255
+ match identity remote address <peer2ip> 255.255.255.255
+ identity local address <pip> 
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local IKE-KEY
+
+no crypto ikev2 http-url cert
+
+crypto ipsec transform-set AES-SHA esp-aes esp-sha-hmac
+ mode tunnel
+
+crypto ipsec profile IPSEC-PROF
+ set transform-set AES-SHA
+ set ikev2-profile IKE-PROF
+
+interface Tunnel1
+ ip add <tunnelip> 255.255.255.248
+ tunnel source <localip>
+ tunnel mode ipsec ipv4
+ tunnel destination <peer1ip>
+ tunnel protection ipsec profile IPSEC-PROF
+
+interface Tunnel2
+ ip add <tunnelip> 255.255.255.248
+ tunnel source <localip>
+ tunnel mode ipsec ipv4
+ tunnel destination <peer2ip>
+ tunnel protection ipsec profile IPSEC-PROF
+
+interface loop 30
+ ip add <loopbackIP> 255.255.255.0
+
+route-map INTO-OSPF permit 10
+ match ip address prefix OSPF-PF
+
+ip prefix-list OSPF-PF permit <routingnetwork>/16
+ip prefix-list OSPF-PF permit <loopbacknetwork>/24
+
+router ospf 1
+redistribute static subnets route-map INTO-OSPF
+
+ip route <routingnetwork> 255.255.0.0 <trafficnexthop> interface <trafficinterface>
+ip route <peer1ip> 255.255.255.255 <internetnexthop> interface <internetinterface>
+ip route <peer2ip> 255.255.255.255 <internetnexthop> interface <internetinterface>
+
+
+!tunnel IPs 10.255.1-4.1-4, starting clockwise from northinterface t1r1
+!loopbacks are 192.168.181-184 clockwise from t1r1
+!
+!
+!
+
