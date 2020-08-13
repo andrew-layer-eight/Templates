@@ -12,5 +12,5 @@ template USERACCESSTEMPLATE
  description User Access Port
 !
 interface GigabitEthernet0/1
- source template USER ACCESS TEMPLATE
+ source template USERACCESSTEMPLATE
 !
