@@ -1,4 +1,4 @@
-template UserAccessTemplate
+template USERACCESSTEMPLATE
  dot1x pae authenticator
  switchport access vlan <guest>
  switchport mode access
@@ -12,5 +12,5 @@ template UserAccessTemplate
  description User Access Port
 !
 interface GigabitEthernet0/1
- source template UserAccessTemplate
+ source template USER ACCESS TEMPLATE
 !
