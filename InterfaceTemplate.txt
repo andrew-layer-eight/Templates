@@ -1,0 +1,16 @@
+template UserAccessTemplate
+ dot1x pae authenticator
+ switchport access vlan <guest>
+ switchport mode access
+ switchport voice vlan <guest voice>
+ spanning-tree portfast
+ mab
+ access-session port-control auto
+ service-policy type control subscriber <name of NAC Policy> 
+ service-policy input <name of QoS policy> 
+ service-policy output <name of QoS Policy>
+ description User Access Port
+!
+interface GigabitEthernet0/1
+ source template UserAccessTemplate
+!
